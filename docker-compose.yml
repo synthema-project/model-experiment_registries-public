@@ -1,0 +1,32 @@
+version: "3.7"
+
+networks:
+  fl-network:
+    name: synthema-net
+    external: true
+
+services:
+  mlflow:
+    container_name: "synthema-mlflow"
+    image: "santiagobarriol/synthema-mlflow"
+    build:
+      dockerfile: mlflow/Dockerfile
+      context: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - "./mlflow/data:/mlflow"
+    command: mlflow server --backend-store-uri postgresql://${PG_ADMIN}:${PG_ADMIN_PASSWORD}@${MLFLOW_DB_CONTAINER_NAME}:${MLFLOW_PORT}/mlflow
+              --artifacts-destination file:///mlflow/artifacts 
+              --host 0.0.0.0 --port 5000
+              --serve-artifacts
+              --static-prefix=/mlflow
+#    healthcheck:
+#      test: [ "CMD", "curl", "-f", "http://host.docker.internal:5433" ]
+#      interval: 30s
+#      timeout: 10s
+#      retries: 5
+    networks:
+      - synthema-net
+
+
