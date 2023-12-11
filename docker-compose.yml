@@ -8,9 +8,8 @@ networks:
 services:
   mlflow:
     container_name: "synthema-mlflow"
-    image: "santiagobarriol/synthema-mlflow"
     build:
-      dockerfile: mlflow/Dockerfile
+      dockerfile: Dockerfile
       context: .
     ports:
       - "5000:5000"
