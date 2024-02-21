@@ -1,5 +1,6 @@
 FROM python:3.8-slim
-ARG MLFLOW_VERSION=2.1.1
+ARG MLFLOW_VERSION=2.8.1
 
-WORKDIR /mlflow/
-RUN pip install --no-cache-dir mlflow==$MLFLOW_VERSION psycopg2-binary
+WORKDIR .
+EXPOSE 5000
+RUN pip install --no-cache-dir mlflow==$MLFLOW_VERSION psycopg2-binary SQLAlchemy
