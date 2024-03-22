@@ -1,0 +1,50 @@
+pipeline {
+    agent {
+        node {
+            label 'jenkins-dev'
+        }
+    }
+    environment {
+        APP_NAME = "mlflow"
+        APP_URL = "https://mlflow.k8s.synthema.rid-intrasoft.eu"
+        DOCKER_REG = "harbor.synthema.rid-intrasoft.eu"
+    }
+
+    stages {
+        stage("Deployment"){
+            steps {
+                script {
+                    if (params.production) {
+                        error "Production is not implemented yet"
+                    } else {
+                        sh 'cp templates/dotenv_test .env'
+                    }
+                }
+
+                withKubeConfig([credentialsId: 'k8s-admin']) {
+                    sh 'sh/run.sh'
+                    sleep 60
+               }
+            }
+        }
+        stage("Functional test") {
+            steps {
+                sh 'curl -f $APP_URL'
+            }
+        }
+    }
+    post{
+        failure {
+            withKubeConfig([credentialsId: 'k8s-admin']) {
+                sh 'kubectl delete -f k8/deployment.yaml'
+            }
+        //     // slackSend (color: "#FF0000", message: "Job FAILED: '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+        //     sh 'docker image rm ${APP_NAME}:test &> /dev/null || True'
+        //     sh 'DOCKER_TAG=test docker compose down --rmi all'
+        }
+
+        // success{
+        //     slackSend (color: "#008000", message: "Job SUCCESSFUL: '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+        // }
+    }
+}

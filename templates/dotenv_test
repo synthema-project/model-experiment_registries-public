@@ -1,0 +1,3 @@
+MLFLOW_VERSION=v2.11.2
+ARTIFACTS_DESTINATION=file:///artifacts
+BACKEND_STORE_URI=sqlite:///store.db
