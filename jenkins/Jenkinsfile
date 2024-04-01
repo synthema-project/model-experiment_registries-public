@@ -25,8 +25,10 @@ pipeline {
         stage("Functional test") {
             steps {
                 script {
-                    def nodePort = sh(script: 'kubectl get svc my-service -o jsonpath={.spec.ports[0].nodePort}', returnStdout: true).trim()
-                    sh 'curl -f http://localhost:${nodePort}/health'
+                    withKubeConfig([credentialsId: 'k8s-admin']) {
+                        def nodePort = sh(script: 'kubectl get svc my-service -o jsonpath={.spec.ports[0].nodePort}', returnStdout: true).trim()
+                        sh 'curl -f http://localhost:${nodePort}/health'
+                    }
                 }
             }
         }
