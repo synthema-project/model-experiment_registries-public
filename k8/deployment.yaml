@@ -18,16 +18,16 @@ spec:
           imagePullPolicy: IfNotPresent
           command: ["mlflow", "server"]
           args: [
-            "--host", "0.0.0.0", "--port", "5000", 
+            "--host", "0.0.0.0", "--port", "80", 
             "--serve-artifacts", "--artifacts-destination", "${ARTIFACTS_DESTINATION}",
             "--backend-store-uri", "${BACKEND_STORE_URI}"
           ]
           ports:
-            - containerPort: 5000
+            - containerPort: 80
           livenessProbe:
             httpGet:
               path: /health
-              port: 5000
+              port: 80
             initialDelaySeconds: 60
             periodSeconds: 60
 ---
@@ -41,7 +41,7 @@ spec:
   selector:
     app: mlflow
   ports:
-    - port: 5000
+    - port: 80
       protocol: TCP
 # ---
 # apiVersion: networking.k8s.io/v1
