@@ -4,20 +4,15 @@ pipeline {
             label 'jenkins-dev'
         }
     }
-    environment {
-        APP_NAME = "mlflow"
-        APP_URL = "https://mlflow.k8s.synthema.rid-intrasoft.eu"
-        DOCKER_REG = "harbor.synthema.rid-intrasoft.eu"
-    }
-
+    
     stages {
         stage("Deployment"){
             steps {
                 script {
-                    if (params.production) {
-                        error "Production is not implemented yet"
-                    } else {
+                    if (params.standalone) {
                         sh 'cp templates/dotenv_test .env'
+                    } else {
+                        error "Non standalone (postgres/minio) is not implemented yet"
                     }
                 }
 
