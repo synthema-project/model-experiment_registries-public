@@ -4,7 +4,7 @@ pipeline {
             label 'jenkins-dev'
         }
     }
-    
+
     stages {
         stage("Deployment"){
             steps {
@@ -17,7 +17,7 @@ pipeline {
                 }
 
                 withKubeConfig([credentialsId: 'k8s-admin']) {
-                    sh 'sh/run.sh'
+                    sh 'chmod +x sh/run.sh && sh/run.sh'
                     sleep 60
                }
             }
