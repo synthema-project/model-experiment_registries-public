@@ -24,7 +24,10 @@ pipeline {
         }
         stage("Functional test") {
             steps {
-                sh 'curl -f $APP_URL'
+                script {
+                    def nodePort = sh(script: 'kubectl get svc my-service -o jsonpath={.spec.ports[0].nodePort}', returnStdout: true).trim()
+                    sh 'curl -f http://localhost:${nodePort}/health'
+                }
             }
         }
     }
