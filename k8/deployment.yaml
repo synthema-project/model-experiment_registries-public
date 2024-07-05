@@ -12,16 +12,47 @@ spec:
       labels:
         app: mlflow
     spec:
+      volumes:
+        - name: mlflow-setup-volume
+          emptyDir: {}
+      initContainers:
+        - name: init-mlflow
+          image: ghcr.io/mlflow/mlflow:v2.10.0
+          command: [ "sh", "-c" ]
+          args:
+            - |
+              apt-get update && apt-get install -y gcc python3-dev && \
+              pip install psycopg2-binary -t /mlflow-setup
+          volumeMounts:
+            - name: mlflow-setup-volume
+              mountPath: /mlflow-setup
       containers:
         - name: mlflow
-          image: ghcr.io/mlflow/mlflow:${MLFLOW_VERSION}
+          image: ghcr.io/mlflow/mlflow:v2.10.0
           imagePullPolicy: IfNotPresent
-          command: ["mlflow", "server"]
-          args: [
-            "--host", "0.0.0.0", "--port", "80", 
-            "--serve-artifacts", "--artifacts-destination", "${ARTIFACTS_DESTINATION}",
-            "--backend-store-uri", "${BACKEND_STORE_URI}"
-          ]
+          command: [ "sh", "-c" ]
+          # --default-artifact-root s3://<your-bucket>/mlflow/ \
+          args:
+            - |
+              export PYTHONPATH=/mlflow-setup && \
+              mlflow server --backend-store-uri postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@mstorage-svc:5432/mlflow \
+              --host 0.0.0.0 \
+              --port 80 \
+              --serve-artifacts
+          volumeMounts:
+            - name: mlflow-setup-volume
+              mountPath: /mlflow-setup
+          env:
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: admin-secret
+                  key: username
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: admin-secret
+                  key: password
           ports:
             - containerPort: 80
           livenessProbe:
