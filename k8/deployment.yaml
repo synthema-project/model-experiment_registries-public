@@ -31,13 +31,13 @@ spec:
           image: ghcr.io/mlflow/mlflow:v2.10.0
           imagePullPolicy: IfNotPresent
           command: [ "sh", "-c" ]
-          # --default-artifact-root s3://<your-bucket>/mlflow/ \
           args:
             - |
               export PYTHONPATH=/mlflow-setup && \
               mlflow server --backend-store-uri postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@mstorage-svc:5432/mlflow \
               --host 0.0.0.0 \
               --port 80 \
+              --default-artifact-root s3://mlflow/ \
               --serve-artifacts
           volumeMounts:
             - name: mlflow-setup-volume
@@ -53,6 +53,18 @@ spec:
                 secretKeyRef:
                   name: admin-secret
                   key: password
+#            - name: AWS_ACCESS_KEY_ID
+#              valueFrom:
+#                secretKeyRef:
+#                  name: admin-secret
+#                  key: username
+#            - name: AWS_SECRET_ACCESS_KEY
+#              valueFrom:
+#                secretKeyRef:
+#                  name: admin-secret
+#                  key: password
+            - name: MLFLOW_S3_ENDPOINT_URL
+              value: "http://ostorage-svc-api.synthema-dev:9000"
           ports:
             - containerPort: 80
           livenessProbe:
