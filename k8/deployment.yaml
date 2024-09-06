@@ -87,29 +87,29 @@ spec:
     - port: 80
       protocol: TCP
  ---
-  apiVersion: networking.k8s.io/v1
-  kind: Ingress
-  metadata:
-    annotations:
-      nginx.ingress.kubernetes.io/rewrite-target: /
-      kubernetes.io/ingress.class: "nginx"
-      cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    name: mlflow-dsb-ingress-rule
-    namespace: synthema-dev
-  spec:
-    ingressClassName: nginx
-    rules:
-      - host: mlflow-dsb.k8s.synthema.rid-intrasoft.eu
-        http:
-          paths:
-            - backend:
-                service:
-                  name: mlflow-dsb-svc
-                  port:
-                    number: 80
-              path: /
-              pathType: Prefix
-    tls:
-      - hosts:
-          - mlflow-dsb.k8s.synthema.rid-intrasoft.eu
-        secretName: secret-tls
+#  apiVersion: networking.k8s.io/v1
+#  kind: Ingress
+#  metadata:
+#    annotations:
+#      nginx.ingress.kubernetes.io/rewrite-target: /
+#      kubernetes.io/ingress.class: "nginx"
+#      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+#    name: mlflow-dsb-ingress-rule
+#    namespace: synthema-dev
+#  spec:
+#    ingressClassName: nginx
+#    rules:
+#      - host: mlflow-dsb.k8s.synthema.rid-intrasoft.eu
+#        http:
+#          paths:
+#            - backend:
+#                service:
+#                  name: mlflow-dsb-svc
+#                  port:
+#                    number: 80
+#              path: /
+#              pathType: Prefix
+#    tls:
+#      - hosts:
+#          - mlflow-dsb.k8s.synthema.rid-intrasoft.eu
+#        secretName: secret-tls
