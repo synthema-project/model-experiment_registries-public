@@ -10,9 +10,9 @@ pipeline {
             steps {
                 script {
                     if (params.standalone) {
-                        sh 'cp templates/dotenv_test .env'
+                        sh 'cp templates/dotenv_standalone .env'
                     } else {
-                        error "Non standalone (postgres/minio) is not implemented yet"
+                        sh 'cp templates/dotenv_stack .env'
                     }
                 }
 

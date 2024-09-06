@@ -34,10 +34,10 @@ spec:
           args:
             - |
               export PYTHONPATH=/mlflow-setup && \
-              mlflow server --backend-store-uri postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@mstorage-svc:5432/mlflow \
+              mlflow server --backend-store-uri ${BACKEND_STORE_URI} \
               --host 0.0.0.0 \
               --port 80 \
-              --default-artifact-root s3://mlflow/ \
+              --default-artifact-root ${ARTIFACTS_DESTINATION} \
               --serve-artifacts
           volumeMounts:
             - name: mlflow-setup-volume
@@ -64,7 +64,7 @@ spec:
 #                  name: admin-secret
 #                  key: password
             - name: MLFLOW_S3_ENDPOINT_URL
-              value: "http://ostorage-svc-api.synthema-dev:9000"
+              value: "https://obstorageapi.k8s.synthema.rid-intrasoft.eu/"
           ports:
             - containerPort: 80
           livenessProbe:
