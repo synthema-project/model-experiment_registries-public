@@ -27,6 +27,7 @@ pipeline {
                 script {
                     withKubeConfig([credentialsId: 'k8s-admin']) {
                         def nodePort = sh(script: 'kubectl get svc mlflow-svc -n synthema-dev -o jsonpath={.spec.ports[0].nodePort}', returnStdout: true).trim()
+                        sleep 60
                         sh "curl -f http://49.13.149.57:${nodePort}/health"
                     }
                 }
