@@ -86,30 +86,30 @@ spec:
   ports:
     - port: 80
       protocol: TCP
-# ---
-# apiVersion: networking.k8s.io/v1
-# kind: Ingress
-# metadata:
-#   annotations:
-#     nginx.ingress.kubernetes.io/rewrite-target: /
-#     kubernetes.io/ingress.class: "nginx"
-#     cert-manager.io/cluster-issuer: "letsencrypt-prod"
-#   name: dummyrest-ingress-rule
-#   namespace: synthema-dev
-# spec:
-#   ingressClassName: nginx
-#   rules:
-#     - host: mlflow.k8s.synthema.rid-intrasoft.eu
-#       http:
-#         paths:
-#           - backend:
-#               service:
-#                 name: dummyrest-service
-#                 port:
-#                   number: 8000
-#             path: /
-#             pathType: Prefix
-#   tls:
-#     - hosts:
-#         - mlflow.k8s.synthema.rid-intrasoft.eu
-#       secretName: secret-tls
+ ---
+ apiVersion: networking.k8s.io/v1
+ kind: Ingress
+ metadata:
+   annotations:
+     nginx.ingress.kubernetes.io/rewrite-target: /
+     kubernetes.io/ingress.class: "nginx"
+     cert-manager.io/cluster-issuer: "letsencrypt-prod"
+   name: mlflow-dashboard-ingress-rule
+   namespace: synthema-dev
+ spec:
+   ingressClassName: nginx
+   rules:
+     - host: mlflow.k8s.synthema.rid-intrasoft.eu
+       http:
+         paths:
+           - backend:
+               service:
+                 name: mlflow-dashboard
+                 port:
+                   number: 8000
+             path: /
+             pathType: Prefix
+   tls:
+     - hosts:
+         - mlflow.k8s.synthema.rid-intrasoft.eu
+       secretName: secret-tls
