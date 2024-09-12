@@ -1,5 +1,5 @@
 MLFLOW_VERSION=v2.11.2
 ARTIFACTS_DESTINATION=s3:///mflow
-BACKEND_STORE_URI=postgresql://sbarrio:zk5CP25lBMga35c@mstorage-svc:5432/mlflow
+BACKEND_STORE_URI=postgresql://sbarrio:zk5CP25lBMga35c@mstorage-svc.synthema-dev.svc.cluster.local:5432/mlflow
 POSTGRES_USER=sbarrio
 POSTGRES_PASSWORD=zk5CP25lBMga35c
