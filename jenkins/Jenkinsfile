@@ -34,11 +34,11 @@ pipeline {
             }
         }
     }
-//     post{
-//         failure {
-//             withKubeConfig([credentialsId: 'k8s-admin']) {
+    post{
+        failure {
+            withKubeConfig([credentialsId: 'k8s-admin']) {
 //                 sh 'kubectl delete -f k8/deployment.yaml'
-//             }
+            }
         //     // slackSend (color: "#FF0000", message: "Job FAILED: '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
         //     sh 'docker image rm ${APP_NAME}:test &> /dev/null || True'
         //     sh 'DOCKER_TAG=test docker compose down --rmi all'
