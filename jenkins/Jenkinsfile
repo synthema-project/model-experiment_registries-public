@@ -27,8 +27,8 @@ pipeline {
                 script {
                     withKubeConfig([credentialsId: 'k8s-admin']) {
                         def nodePort = sh(script: 'kubectl get svc mlflow-dsb-svc -n synthema-dev -o jsonpath={.spec.ports[0].nodePort}', returnStdout: true).trim()
-                        sleep 5
-                        sh "curl -f mlflow-dsb-svc.synthema-dev.svc.cluster.local:80/health"
+                        sleep 20
+                        sh "curl -f http://mlflow-dsb-svc.synthema-dev.svc.cluster.local/health"
                     }
                 }
             }
