@@ -63,6 +63,8 @@ spec:
                 secretKeyRef:
                   name: minio-secret
                   key: secret_key
+            - name: MLFLOW_S3_BUCKET
+              value: "mlflow"
             - name: MLFLOW_S3_ENDPOINT_URL
               value: "https://obstorageapi.k8s.synthema.rid-intrasoft.eu/"
             - name: ARTIFACTS_DESTINATION
