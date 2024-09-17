@@ -70,7 +70,7 @@ spec:
             - name: MLFLOW_S3_ENDPOINT_URL
               value: "http://obstorage-svc-api.synthema-dev.svc.cluster.local:9000"
             - name: MLFLOW_ARTIFACTS_DESTINATION
-              value: "s3://mlflow/"
+              value: "s3://mlflow@ostorage-svc-api.synthema-dev.svc.cluster.local:9000/mlflow/"
 
           ports:
             - containerPort: 80
