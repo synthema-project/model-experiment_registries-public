@@ -1,3 +1,13 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: minio-secret
+  namespace: synthema-dev
+type: Opaque
+stringData:
+  acces_key: Uah0Hra7U5QRqFydlF3f
+  secret_key: ChQWXIVpsAxnFnD7oGBzknu1tYwrIH13nSBOoyM4
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -22,7 +32,7 @@ spec:
           args:
             - |
               apt-get update && apt-get install -y gcc python3-dev && \
-              pip install psycopg2-binary -t /mlflow-setup
+              pip install psycopg2-binary boto3 -t /mlflow-setup
           volumeMounts:
             - name: mlflow-setup-volume
               mountPath: /mlflow-setup
