@@ -6,5 +6,5 @@ cd "$script_dir/.."
 # Load environment variables from .env file
 export $(cat .env | xargs)
 
-# Process the deployment.yaml with envsubst
-envsubst < k8/deployment.yaml | kubectl apply -f -
+# Process the manifest.yaml with envsubst
+envsubst < k8/manifest.yaml | kubectl apply -f -

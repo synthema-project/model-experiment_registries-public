@@ -1,13 +1,3 @@
-apiVersion: v1
-kind: Secret
-metadata:
-  name: minio-secret
-  namespace: synthema-dev
-type: Opaque
-data:
-  acces_key: Uah0Hra7U5QRqFydlF3f
-  secret_key: ChQWXIVpsAxnFnD7oGBzknu1tYwrIH13nSBOoyM4
----
 apiVersion: apps/v1
 kind: Deployment
 metadata:
