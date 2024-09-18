@@ -3,3 +3,7 @@ MLFLOW_ARTIFACTS_DESTINATION=s3:///mflow
 BACKEND_STORE_URI=postgresql://sbarrio:zk5CP25lBMga35c@mstorage-svc.synthema-dev.svc.cluster.local:5432/mlflow
 POSTGRES_USER=sbarrio
 POSTGRES_PASSWORD=zk5CP25lBMga35c
+AWS_ACCESS_KEY_ID=Uah0Hra7U5QRqFydlF3f
+AWS_SECRET_ACCESS_KEY=ChQWXIVpsAxnFnD7oGBzknu1tYwrIH13nSBOoyM4
+MLFLOW_S3_BUCKET=mlflow
+MLFLOW_S3_ENDPOINT_URL=https://obstorageapi.k8s.synthema.rid-intrasoft.eu
