@@ -76,9 +76,9 @@ spec:
             # - name: AWS_S3_BUCKET
             #   value: "mlflow"
             - name: BACKEND_STORE_URI
-              value: "http://mstorage-minio.synthema-dev.svc.cluster.local:5432/mlflow"
+              value: "http://mstorage-svc.synthema-dev:5432/mlflow"
             - name: MLFLOW_S3_ENDPOINT_URL
-              value: "http://obstorage-minio.synthema-dev.svc.cluster.local:9000"
+              value: "http://obstorage-svc.synthema-dev:9000"
             - name: ARTIFACTS_DESTINATION
               value: "s3://mlflow"
 
