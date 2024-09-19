@@ -78,7 +78,7 @@ spec:
             - name: BACKEND_STORE_URI
               value: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@mstorage-svc.synthema-dev:5432/mlflow"
             - name: MLFLOW_S3_ENDPOINT_URL
-              value: "http://obstorage-svc.synthema-dev:9000"
+              value: "http://obstorage-minio.synthema-dev:9000"
             - name: ARTIFACTS_DESTINATION
               value: "s3://mlflow"
 
