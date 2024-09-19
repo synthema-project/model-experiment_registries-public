@@ -47,7 +47,7 @@ spec:
               mlflow server --backend-store-uri ${BACKEND_STORE_URI} \
               --host 0.0.0.0 \
               --port 80 \
-              --artifacts-destination ${ARTIFACTS_DESTINATION} \
+              --artifacts-destination s3://mlflow \
               --serve-artifacts
           volumeMounts:
             - name: mlflow-setup-volume
