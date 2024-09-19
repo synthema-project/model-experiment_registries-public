@@ -38,7 +38,7 @@ spec:
               mountPath: /mlflow-setup
       containers:
         - name: mlflow
-          image: ghcr.io/mlflow/mlflow:v2.10.0
+          image: ghcr.io/mlflow/mlflow:v2.16.2
           imagePullPolicy: IfNotPresent
           command: [ "sh", "-c" ]
           args:
