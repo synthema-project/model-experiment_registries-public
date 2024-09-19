@@ -27,7 +27,7 @@ spec:
           emptyDir: {}
       initContainers:
         - name: init-mlflow
-          image: ghcr.io/mlflow/mlflow:v2.10.0
+          image: ghcr.io/mlflow/mlflow:v2.16.2
           command: [ "sh", "-c" ]
           args:
             - |
