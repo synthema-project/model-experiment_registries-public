@@ -6,7 +6,7 @@ pipeline {
     }
 
     stages {
-        stage("Deployment"){
+        stage("Deployment") {
             steps {
                 script {
                     if (params.standalone) {
@@ -19,9 +19,10 @@ pipeline {
                 withKubeConfig([credentialsId: 'k8s-admin']) {
                     sh 'kubectl apply -f k8/deployment.yaml'
                     sleep 20
-               }
+                }
             }
         }
+
         stage("Functional test") {
             steps {
                 script {
@@ -35,27 +36,27 @@ pipeline {
                         // Perform a health check on the forwarded port
                         sh "curl -f http://localhost:8080/health"
 
-                        // Optional: kill the port-forward process after the test
+                        // Kill the port-forward process after the test
                         sh 'pkill -f "kubectl port-forward"'
                     }
                 }
+            }
         }
     }
-}
-    }
-}
-    }
-    post{
+
+    post {
         failure {
             withKubeConfig([credentialsId: 'k8s-admin']) {
-                 //sh 'kubectl delete -f k8/deployment.yaml'
+                // sh 'kubectl delete -f k8/deployment.yaml'
             }
-        //     // slackSend (color: "#FF0000", message: "Job FAILED: '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
-        //     sh 'docker image rm ${APP_NAME}:test &> /dev/null || True'
-        //     sh 'DOCKER_TAG=test docker compose down --rmi all'
+
+            // slackSend (color: "#FF0000", message: "Job FAILED: '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
+
+            // sh 'docker image rm ${APP_NAME}:test &> /dev/null || true'
+            // sh 'DOCKER_TAG=test docker compose down --rmi all'
         }
 
-        // success{
+        // success {
         //     slackSend (color: "#008000", message: "Job SUCCESSFUL: '${env.JOB_NAME} [${env.BUILD_NUMBER}]' (${env.BUILD_URL})")
         // }
     }
