@@ -30,7 +30,8 @@ pipeline {
                 def servicePort = sh(script: 'kubectl get svc mlflow-dsb-svc -n synthema-dev -o jsonpath={.spec.ports[0].port}', returnStdout: true).trim()
                 // Use the internal ClusterIP DNS to reach the service
                 def serviceHost = 'mlflow-dsb-svc.synthema-dev.svc.cluster.local'
-                sh "curl -f http://${serviceHost}:${servicePort}/health"
+                def clusterIP = sh(script: 'kubectl get svc mlflow-dsb-svc -n synthema-dev -o jsonpath={.spec.clusterIP}', returnStdout: true).trim()
+                sh "curl -f http://${clusterIP}:${servicePort}/health"
             }
         }
     }
