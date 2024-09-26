@@ -27,7 +27,7 @@ pipeline {
         script {
             withKubeConfig([credentialsId: 'k8s-admin']) {
                 def nodePort = sh(script: 'kubectl get svc mlflow-dsb-svc -n synthema-dev -o jsonpath={.spec.ports[0].nodePort}', returnStdout: true).trim()
-                def nodeIP = sh(script: 'kubectl get nodes -o jsonpath={.items[0].status.addresses[?(@.type=="ExternalIP")].address}', returnStdout: true).trim()
+                def nodeIP = sh(script: 'kubectl get nodes -o jsonpath=\'{.items[0].status.addresses[?(@.type=="ExternalIP")].address}\'', returnStdout: true).trim()
                 sh "curl -f http://${nodeIP}:${nodePort}/health"
             }
         }
