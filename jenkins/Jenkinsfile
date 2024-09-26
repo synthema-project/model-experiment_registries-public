@@ -23,17 +23,25 @@ pipeline {
             }
         }
         stage("Functional test") {
-    steps {
-        script {
-            withKubeConfig([credentialsId: 'k8s-admin']) {
-                // Get the service port
-                def servicePort = sh(script: 'kubectl get svc mlflow-dsb-svc -n synthema-dev -o jsonpath={.spec.ports[0].port}', returnStdout: true).trim()
-                // Use the internal ClusterIP DNS to reach the service
-                def serviceHost = 'mlflow-dsb-svc.synthema-dev.svc.cluster.local'
-                def clusterIP = sh(script: 'kubectl get svc mlflow-dsb-svc -n synthema-dev -o jsonpath={.spec.clusterIP}', returnStdout: true).trim()
-                sh "curl -f http://${clusterIP}:${servicePort}/health"
-            }
+            steps {
+                script {
+                    withKubeConfig([credentialsId: 'k8s-admin']) {
+                        // Set up port forwarding from the service's port to a local port (e.g., 8080)
+                        sh 'kubectl port-forward svc/mlflow-dsb-svc 8080:80 -n synthema-dev &'
+
+                        // Wait a bit to ensure port forwarding is up
+                        sleep(5)
+
+                        // Perform a health check on the forwarded port
+                        sh "curl -f http://localhost:8080/health"
+
+                        // Optional: kill the port-forward process after the test
+                        sh 'pkill -f "kubectl port-forward"'
+                    }
+                }
         }
+    }
+}
     }
 }
     }
