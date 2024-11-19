@@ -49,3 +49,4 @@ You can deploy the mlflow server in kubernetes adapt k8/deployment.yaml to the k
 
 ## License
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
+This project extend the usage of the MLFlow (mlflow) open software library for python which is registered under Apache 2.0 License, also compliant with the MIT License
