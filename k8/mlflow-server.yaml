@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: mlflow
+  name: model-experiment-registry-deployment
   namespace: synthema-dev
 spec:
   selector:
@@ -46,22 +46,22 @@ spec:
             - name: POSTGRES_USER
               valueFrom:
                 secretKeyRef:
-                  name: admin-secret
+                  name: model-experiment-registries-metadata-storage-secret
                   key: username
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: admin-secret
+                  name: model-experiment-registries-metadata-storage-secret
                   key: password
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
-                  name: minio-secret
+                  name: model-experiment-registries-object-storage-secret
                   key: acces_key
             - name: AWS_SECRET_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
-                  name: minio-secret
+                  name: model-experiment-registries-object-storage-secret
                   key: secret_key
             - name: BACKEND_STORE_URI
               value: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@mstorage-svc.synthema-dev:5432/mlflow"
@@ -82,12 +82,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: mlflow-dsb-svc
+  name: model-experiment-registry-service
   namespace: synthema-dev
 spec:
   type: ClusterIP
   selector:
-    app: mlflow
+    app: model-experiment-registry-deployment
   ports:
     - port: 80
       protocol: TCP
@@ -100,22 +100,22 @@ metadata:
     nginx.ingress.kubernetes.io/rewrite-target: /
     kubernetes.io/ingress.class: "nginx"
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
-  name: mlflow-dsb-ingress-rule
+  name: model-experiment-registry-ingress-rule
   namespace: synthema-dev
 spec:
   ingressClassName: nginx
   rules:
-    - host: mlflow-dsb.k8s.synthema.rid-intrasoft.eu
+    - host: mlflow.k8s.synthema.rid-intrasoft.eu
       http:
         paths:
           - backend:
               service:
-                name: mlflow-dsb-svc
+                name: model-experiment-registry-service
                 port:
                   number: 80
             path: /
             pathType: Prefix
   tls:
     - hosts:
-        - mlflow-dsb.k8s.synthema.rid-intrasoft.eu
+        - mlflow.k8s.synthema.rid-intrasoft.eu
       secretName: secret-tls
