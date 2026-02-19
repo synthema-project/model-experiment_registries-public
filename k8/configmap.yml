@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mlflow-config
+data:
+  MLFLOW_VERSION: "v2.16.2"
+  POSTGRES_URL: "postgres.synthema.svc.cluster.local:5432"
+  POSTGRES_DB_NAME: "mlflow"
+  MLFLOW_S3_ENDPOINT_URL: "http://minio.synthema.svc.cluster.local:9000"
+  ARTIFACTS_DESTINATION: "s3://mlflow"
+  MLFLOW_S3_BUCKET: "mlflow"

@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: model-experiment-registry-deployment
-  namespace: synthema-dev
+  namespace: synthema
 spec:
   selector:
     matchLabels:
@@ -34,10 +34,10 @@ spec:
           args:
             - |
               export PYTHONPATH=/mlflow-setup && \
-              mlflow server --backend-store-uri postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@mstorage-svc.synthema-dev:5432/mlflow \
+              mlflow server --backend-store-uri postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_URL}/${POSTGRES_DB_NAME} \
               --host 0.0.0.0 \
               --port 80 \
-              --artifacts-destination s3://mlflow \
+              --artifacts-destination ${ARTIFACTS_DESTINATION} \
               --serve-artifacts
           volumeMounts:
             - name: mlflow-setup-volume
@@ -46,48 +46,67 @@ spec:
             - name: POSTGRES_USER
               valueFrom:
                 secretKeyRef:
-                  name: model-experiment-registries-metadata-storage-secret
-                  key: username
+                  name: postgres-secret
+                  key: POSTGRES_USER
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: model-experiment-registries-metadata-storage-secret
-                  key: password
+                  name: postgres-secret
+                  key: POSTGRES_PASSWORD
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
-                  name: model-experiment-registries-object-storage-secret
-                  key: acces_key
+                  name: minio-secret
+                  key: MINIO_ROOT_USER
             - name: AWS_SECRET_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
-                  name: model-experiment-registries-object-storage-secret
-                  key: secret_key
-            - name: BACKEND_STORE_URI
-              value: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@mstorage-svc.synthema-dev:5432/mlflow"
+                  name: minio-secret
+                  key: MINIO_ROOT_PASSWORD
+            - name: POSTGRES_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: mlflow-config
+                  key: POSTGRES_URL
+            - name: POSTGRES_DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: mlflow-config
+                  key: POSTGRES_DB_NAME
             - name: MLFLOW_S3_ENDPOINT_URL
-              value: "http://obstorage-minio.synthema-dev:9000"
+              valueFrom:
+                configMapKeyRef:
+                  name: mlflow-config
+                  key: MLFLOW_S3_ENDPOINT_URL
             - name: ARTIFACTS_DESTINATION
-              value: "s3://mlflow"
+              valueFrom:
+                configMapKeyRef:
+                  name: mlflow-config
+                  key: ARTIFACTS_DESTINATION
+            - name: MLFLOW_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: mlflow-config
+                  key: MLFLOW_VERSION
 
           ports:
             - containerPort: 80
-          livenessProbe:
-            httpGet:
-              path: /health
-              port: 80
-            initialDelaySeconds: 60
-            periodSeconds: 60
+          #livenessProbe:
+          #  httpGet:
+          #    path: /health
+          #    port: 80
+          #  initialDelaySeconds: 60
+          #  periodSeconds: 60
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: model-experiment-registry-service
-  namespace: synthema-dev
+  namespace: synthema
 spec:
   type: ClusterIP
   selector:
-    app: model-experiment-registry-deployment
+    app: mlflow
   ports:
     - port: 80
       protocol: TCP
