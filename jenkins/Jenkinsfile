@@ -30,7 +30,7 @@ pipeline {
                         set -eu
                         kubectl get namespace "$NAMESPACE" -o name
                         bash jenkins/mlflow-secret.sh validate
-                        kubectl -n "$NAMESPACE" apply --dry-run=server -f k8/configmap.yml
+                        kubectl -n "$NAMESPACE" apply --dry-run=server -f k8/configmap.yml -f k8/mlflow-secret.yaml
                         kubectl -n "$NAMESPACE" apply --dry-run=server -f "$MANIFEST"
                     '''
                 }
@@ -42,7 +42,7 @@ pipeline {
                     sh '''
                         set -eu
                         bash jenkins/mlflow-secret.sh apply
-                        kubectl -n "$NAMESPACE" apply -f k8/configmap.yml -f k8s/mlflow-secret.yaml
+                        kubectl -n "$NAMESPACE" apply -f k8/configmap.yml -f k8/mlflow-secret.yaml
                         kubectl -n "$NAMESPACE" apply -f "$MANIFEST"
                         kubectl -n "$NAMESPACE" rollout restart deployment/"$DEPLOYMENT"
                         kubectl -n "$NAMESPACE" rollout status deployment/"$DEPLOYMENT" --timeout=600s
