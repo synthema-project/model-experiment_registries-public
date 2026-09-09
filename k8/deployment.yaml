@@ -57,12 +57,12 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: minio-secret
-                  key: MINIO_ROOT_USER
+                  key: MINIO_ACCESS_KEY
             - name: AWS_SECRET_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
                   name: minio-secret
-                  key: MINIO_ROOT_PASSWORD
+                key: MINIO_SECRET_KEY
             - name: POSTGRES_URL
               valueFrom:
                 configMapKeyRef:
