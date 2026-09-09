@@ -62,7 +62,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: minio-secret
-                key: MINIO_SECRET_KEY
+                  key: MINIO_SECRET_KEY
             - name: POSTGRES_URL
               valueFrom:
                 configMapKeyRef:
