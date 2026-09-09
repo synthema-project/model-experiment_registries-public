@@ -43,6 +43,35 @@ pipeline {
                     '''
                 }
             }
+            post {
+                unsuccessful {
+                    withKubeConfig([credentialsId: params.KUBE_CREDENTIALS_ID]) {
+                        sh '''
+                            # Best-effort diagnostics; preserve the original deployment failure.
+                            set +e
+                            kubectl --request-timeout=15s -n "$NAMESPACE" get pods -l app=mlflow -o wide
+                            pods=$(kubectl --request-timeout=15s -n "$NAMESPACE" get pods -l app=mlflow -o name)
+                            for pod in $pods; do
+                                echo "=== $pod: init-container status ==="
+                                kubectl --request-timeout=15s -n "$NAMESPACE" get "$pod" \
+                                    -o jsonpath='{.status.initContainerStatuses}'
+                                echo
+                                echo "=== $pod: previous init-mlflow logs ==="
+                                kubectl --request-timeout=15s -n "$NAMESPACE" logs "$pod" \
+                                    -c init-mlflow --previous --tail=150 --timestamps
+                                echo "=== $pod: current init-mlflow logs ==="
+                                kubectl --request-timeout=15s -n "$NAMESPACE" logs "$pod" \
+                                    -c init-mlflow --tail=150 --timestamps
+                                echo "=== $pod: events ==="
+                                kubectl --request-timeout=15s -n "$NAMESPACE" get events \
+                                    --field-selector "involvedObject.kind=Pod,involvedObject.name=${pod#pod/}" \
+                                    --sort-by=.metadata.creationTimestamp
+                            done
+                            exit 0
+                        '''
+                    }
+                }
+            }
         }
         stage('Functional tests') {
             steps {
