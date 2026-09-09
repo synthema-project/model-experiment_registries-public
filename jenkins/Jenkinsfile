@@ -1,47 +1,53 @@
 pipeline {
-    agent {
-        node {
-            label 'jenkins-dev'
-        }
+    agent { label 'jenkins-dev' }
+
+    options {
+        disableConcurrentBuilds()
+        timeout(time: 15, unit: 'MINUTES')
+    }
+
+    parameters {
+        string(name: 'KUBE_CREDENTIALS_ID', defaultValue: 'k8s-admin', description: 'Jenkins Kubernetes credentials')
+    }
+
+    environment {
+        // Keep aligned with the namespace and resource names in the manifest.
+        NAMESPACE = 'synthema'
+        MANIFEST = 'k8/mlflow-server.yaml'
+        DEPLOYMENT = 'model-experiment-registry-deployment'
+        SERVICE = 'model-experiment-registry-service'
     }
 
     stages {
-        stage("Deployment") {
+        stage('Validate') {
             steps {
-                script {
-                    if (params.standalone) {
-                        sh 'cp templates/dotenv_standalone .env'
-                    } else {
-                        sh 'cp templates/dotenv_stack .env'
-                    }
-                }
-
-                withKubeConfig([credentialsId: 'k8s-admin']) {
-                    sh 'kubectl apply -f k8/deployment.yaml'
-                    sleep 20
+                withKubeConfig([credentialsId: params.KUBE_CREDENTIALS_ID]) {
+                    sh '''
+                        set -eu
+                        kubectl get namespace "$NAMESPACE" -o name
+                        kubectl -n "$NAMESPACE" get secret postgres-secret minio-secret -o name
+                        kubectl -n "$NAMESPACE" apply --dry-run=server -f "$MANIFEST"
+                    '''
                 }
             }
         }
-
-        stage("Functional test") {
+        stage('Deploy') {
             steps {
-                script {
-                    withKubeConfig([credentialsId: 'k8s-admin']) {
-                        // Set up port forwarding from the service's port to a local port (e.g., 8080)
-                        sh 'kubectl port-forward svc/mlflow-dsb-svc 8080:80 -n synthema-dev &'
-
-                        // Wait a bit to ensure port forwarding is up
-                        sleep(5)
-
-                        // Perform a health check on the forwarded port
-                        sh "curl -f http://localhost:8080/health"
-
-                        // Kill the port-forward process after the test
-                        sh 'pkill -f "kubectl port-forward"'
-                    }
+                withKubeConfig([credentialsId: params.KUBE_CREDENTIALS_ID]) {
+                    sh '''
+                        set -eu
+                        kubectl -n "$NAMESPACE" apply -f "$MANIFEST"
+                        kubectl -n "$NAMESPACE" rollout status deployment/"$DEPLOYMENT" --timeout=600s
+                    '''
+                }
+            }
+        }
+        stage('Functional tests') {
+            steps {
+                withKubeConfig([credentialsId: params.KUBE_CREDENTIALS_ID]) {
+                    sh 'bash tests/func_tests.sh'
                 }
             }
         }
     }
-
 }
