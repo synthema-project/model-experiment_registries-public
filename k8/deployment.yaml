@@ -46,23 +46,23 @@ spec:
             - name: POSTGRES_USER
               valueFrom:
                 secretKeyRef:
-                  name: mlflow-secret
+                  name: postgres-secret
                   key: POSTGRES_USER
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: mlflow-secret
+                  name: postgres-secret
                   key: POSTGRES_PASSWORD
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
-                  name: mlflow-secret
-                  key: AWS_ACCESS_KEY_ID
+                  name: minio-secret
+                  key: MINIO_ROOT_USER
             - name: AWS_SECRET_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
-                  name: mlflow-secret
-                  key: AWS_SECRET_ACCESS_KEY
+                  name: minio-secret
+                  key: MINIO_ROOT_PASSWORD
             - name: POSTGRES_URL
               valueFrom:
                 configMapKeyRef:
