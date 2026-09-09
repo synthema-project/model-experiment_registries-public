@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: model-experiment-registry-deployment
-  namespace: synthema
+  namespace: synthema-dev
 spec:
   selector:
     matchLabels:
@@ -34,10 +34,11 @@ spec:
           args:
             - |
               export PYTHONPATH=/mlflow-setup && \
+              mlflow server --backend-store-uri postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_URL}/${POSTGRES_DB_NAME} \
               mlflow server --backend-store-uri postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres.synthema.svc.cluster.local:5432/mlflow \
               --host 0.0.0.0 \
               --port 80 \
-              --artifacts-destination s3://mlflow \
+              --artifacts-destination ${ARTIFACTS_DESTINATION} \
               --serve-artifacts
           volumeMounts:
             - name: mlflow-setup-volume
@@ -46,11 +47,15 @@ spec:
             - name: POSTGRES_USER
               valueFrom:
                 secretKeyRef:
+                  name: mlflow-secret
+                  key: POSTGRES_USER
                   name: postgres-secret
                   key: POSTGRES_USER
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
+                  name: mlflow-secret
+                  key: POSTGRES_PASSWORD
                   name: postgres-secret
                   key: POSTGRES_PASSWORD
             - name: AWS_ACCESS_KEY_ID
@@ -61,14 +66,33 @@ spec:
             - name: AWS_SECRET_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
-                  name: minio-secret
-                  key: MINIO_ROOT_PASSWORD
-            - name: BACKEND_STORE_URI
-              value: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres.synthema.svc.cluster.local:5432/mlflow"
+                  name: mlflow-secret
+                  key: AWS_SECRET_ACCESS_KEY
+            - name: POSTGRES_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: mlflow-config
+                  key: POSTGRES_URL
+            - name: POSTGRES_DB_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: mlflow-config
+                  key: POSTGRES_DB_NAME
             - name: MLFLOW_S3_ENDPOINT_URL
-              value: "http://minio.synthema.svc.cluster.local:9000"
+              valueFrom:
+                configMapKeyRef:
+                  name: mlflow-config
+                  key: MLFLOW_S3_ENDPOINT_URL
             - name: ARTIFACTS_DESTINATION
-              value: "s3://mlflow"
+              valueFrom:
+                configMapKeyRef:
+                  name: mlflow-config
+                  key: ARTIFACTS_DESTINATION
+            - name: MLFLOW_VERSION
+              valueFrom:
+                configMapKeyRef:
+                  name: mlflow-config
+                  key: MLFLOW_VERSION
 
           ports:
             - containerPort: 80
@@ -83,39 +107,39 @@ apiVersion: v1
 kind: Service
 metadata:
   name: model-experiment-registry-service
-  namespace: synthema
+  namespace: synthema-dev
 spec:
   type: ClusterIP
   selector:
-    app: mlflow
+    app: model-experiment-registry-deployment
   ports:
     - port: 80
       protocol: TCP
       targetPort: 80
 ---
-#apiVersion: networking.k8s.io/v1
-#kind: Ingress
-#metadata:
-#  annotations:
-#    nginx.ingress.kubernetes.io/rewrite-target: /
-#    kubernetes.io/ingress.class: "nginx"
-#    cert-manager.io/cluster-issuer: "letsencrypt-prod"
-#  name: model-experiment-registry-ingress-rule
-#  namespace: synthema-dev
-#spec:
-#  ingressClassName: nginx
-#  rules:
-#    - host: mlflow.k8s.synthema.rid-intrasoft.eu
-#      http:
-#        paths:
-#          - backend:
-#              service:
-#                name: model-experiment-registry-service
-#                port:
-#                  number: 80
-#            path: /
-#            pathType: Prefix
-#  tls:
-#    - hosts:
-#        - mlflow.k8s.synthema.rid-intrasoft.eu
-#      secretName: secret-tls
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  name: model-experiment-registry-ingress-rule
+  namespace: synthema-dev
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: mlflow.k8s.synthema.rid-intrasoft.eu
+      http:
+        paths:
+          - backend:
+              service:
+                name: model-experiment-registry-service
+                port:
+                  number: 80
+            path: /
+            pathType: Prefix
+  tls:
+    - hosts:
+        - mlflow.k8s.synthema.rid-intrasoft.eu
+      secretName: secret-tls
