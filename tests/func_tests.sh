@@ -2,7 +2,7 @@
 # Functional checks against the deployed service; no test experiments are created.
 set -euo pipefail
 
-: "${NAMESPACE:=synthema}"
+: "${NAMESPACE:=synthema-dev}"
 : "${SERVICE:=model-experiment-registry-service}"
 check_dir=$(mktemp -d)
 forward_pid=

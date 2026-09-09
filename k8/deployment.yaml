@@ -34,11 +34,10 @@ spec:
           args:
             - |
               export PYTHONPATH=/mlflow-setup && \
-              mlflow server --backend-store-uri postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_URL}/${POSTGRES_DB_NAME} \
-              mlflow server --backend-store-uri postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres.synthema.svc.cluster.local:5432/mlflow \
+              exec mlflow server --backend-store-uri "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_URL}/${POSTGRES_DB_NAME}" \
               --host 0.0.0.0 \
               --port 80 \
-              --artifacts-destination ${ARTIFACTS_DESTINATION} \
+              --artifacts-destination "${ARTIFACTS_DESTINATION}" \
               --serve-artifacts
           volumeMounts:
             - name: mlflow-setup-volume
@@ -49,20 +48,16 @@ spec:
                 secretKeyRef:
                   name: mlflow-secret
                   key: POSTGRES_USER
-                  name: postgres-secret
-                  key: POSTGRES_USER
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: mlflow-secret
                   key: POSTGRES_PASSWORD
-                  name: postgres-secret
-                  key: POSTGRES_PASSWORD
             - name: AWS_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
-                  name: minio-secret
-                  key: MINIO_ROOT_USER
+                  name: mlflow-secret
+                  key: AWS_ACCESS_KEY_ID
             - name: AWS_SECRET_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
@@ -88,11 +83,6 @@ spec:
                 configMapKeyRef:
                   name: mlflow-config
                   key: ARTIFACTS_DESTINATION
-            - name: MLFLOW_VERSION
-              valueFrom:
-                configMapKeyRef:
-                  name: mlflow-config
-                  key: MLFLOW_VERSION
 
           ports:
             - containerPort: 80

@@ -12,8 +12,8 @@ pipeline {
 
     environment {
         // Keep aligned with the namespace and resource names in the manifest.
-        NAMESPACE = 'synthema'
-        MANIFEST = 'k8/mlflow-server.yaml'
+        NAMESPACE = 'synthema-dev'
+        MANIFEST = 'k8/deployment.yaml'
         DEPLOYMENT = 'model-experiment-registry-deployment'
         SERVICE = 'model-experiment-registry-service'
     }
@@ -25,7 +25,7 @@ pipeline {
                     sh '''
                         set -eu
                         kubectl get namespace "$NAMESPACE" -o name
-                        kubectl -n "$NAMESPACE" get secret postgres-secret minio-secret -o name
+                        kubectl -n "$NAMESPACE" apply --dry-run=server -f k8/configmap.yml -f k8/mlflow-secret.yaml
                         kubectl -n "$NAMESPACE" apply --dry-run=server -f "$MANIFEST"
                     '''
                 }
@@ -36,7 +36,9 @@ pipeline {
                 withKubeConfig([credentialsId: params.KUBE_CREDENTIALS_ID]) {
                     sh '''
                         set -eu
+                        kubectl -n "$NAMESPACE" apply -f k8/configmap.yml -f k8/mlflow-secret.yaml
                         kubectl -n "$NAMESPACE" apply -f "$MANIFEST"
+                        kubectl -n "$NAMESPACE" rollout restart deployment/"$DEPLOYMENT"
                         kubectl -n "$NAMESPACE" rollout status deployment/"$DEPLOYMENT" --timeout=600s
                     '''
                 }
