@@ -8,6 +8,10 @@ pipeline {
 
     parameters {
         string(name: 'KUBE_CREDENTIALS_ID', defaultValue: 'k8s-admin', description: 'Jenkins Kubernetes credentials')
+        string(name: 'POSTGRES_USER', defaultValue: '', description: 'PostgreSQL user for the mlflow database', trim: true)
+        password(name: 'POSTGRES_PASSWORD', defaultValue: '', description: 'PostgreSQL password')
+        string(name: 'AWS_ACCESS_KEY_ID', defaultValue: '', description: 'MinIO access key ID', trim: true)
+        password(name: 'AWS_SECRET_ACCESS_KEY', defaultValue: '', description: 'MinIO secret access key')
     }
 
     environment {
@@ -25,7 +29,8 @@ pipeline {
                     sh '''
                         set -eu
                         kubectl get namespace "$NAMESPACE" -o name
-                        kubectl -n "$NAMESPACE" apply --dry-run=server -f k8/configmap.yml -f k8/mlflow-secret.yaml
+                        bash jenkins/mlflow-secret.sh validate
+                        kubectl -n "$NAMESPACE" apply --dry-run=server -f k8/configmap.yml
                         kubectl -n "$NAMESPACE" apply --dry-run=server -f "$MANIFEST"
                     '''
                 }
@@ -36,7 +41,8 @@ pipeline {
                 withKubeConfig([credentialsId: params.KUBE_CREDENTIALS_ID]) {
                     sh '''
                         set -eu
-                        kubectl -n "$NAMESPACE" apply -f k8/configmap.yml -f k8/mlflow-secret.yaml
+                        bash jenkins/mlflow-secret.sh apply
+                        kubectl -n "$NAMESPACE" apply -f k8/configmap.yml
                         kubectl -n "$NAMESPACE" apply -f "$MANIFEST"
                         kubectl -n "$NAMESPACE" rollout restart deployment/"$DEPLOYMENT"
                         kubectl -n "$NAMESPACE" rollout status deployment/"$DEPLOYMENT" --timeout=600s
