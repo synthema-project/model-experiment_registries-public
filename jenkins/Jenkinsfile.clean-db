@@ -1,0 +1,26 @@
+pipeline {
+    agent { label 'jenkins-dev' }
+    options {
+        disableConcurrentBuilds()
+        timeout(time: 20, unit: 'MINUTES')
+    }
+    parameters {
+        string(name: 'KUBE_CREDENTIALS_ID', defaultValue: 'k8s-admin', description: 'Jenkins Kubernetes credentials')
+        choice(name: 'DB_ACTION', choices: ['upgrade', 'reset'], description: 'upgrade preserves data; reset deletes MLflow tracking and model registry metadata')
+        booleanParam(name: 'BACKUP_CONFIRMED', defaultValue: false, description: 'I have a database backup, or this is disposable development data')
+        string(name: 'RESET_CONFIRMATION', defaultValue: '', description: 'For reset only: type synthema-dev/mlflow', trim: true)
+    }
+    environment {
+        NAMESPACE = 'synthema-dev'
+        DEPLOYMENT = 'model-experiment-registry-deployment'
+    }
+    stages {
+        stage('Database maintenance') {
+            steps {
+                withKubeConfig([credentialsId: params.KUBE_CREDENTIALS_ID]) {
+                    sh 'python3 jenkins/maintain-db.py'
+                }
+            }
+        }
+    }
+}
