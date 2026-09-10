@@ -148,4 +148,4 @@ spec:
   tls:
     - hosts:
         - mlflow.k8s.synthema.rid-intrasoft.eu
-      secretName: secret-tls
+      secretName: model-experiment-registry-secret-tls
