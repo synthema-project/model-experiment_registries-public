@@ -42,6 +42,28 @@ if [[ "$version" != '2.16.2' ]]; then
     echo "Expected MLflow 2.16.2, received: $version" >&2
     exit 1
 fi
+# Protected APIs must reject anonymous requests.
+status=$(curl --silent --show-error --connect-timeout 5 --max-time 30 \
+    --output /dev/null --write-out '%{http_code}' \
+    "$base_url/api/2.0/mlflow/registered-models/search?max_results=1")
+if [[ "$status" != '401' ]]; then
+    echo "Expected anonymous API request to return 401, received: $status" >&2
+    exit 1
+fi
+: "${MLFLOW_TRACKING_USERNAME:?MLflow test username is required}"
+: "${MLFLOW_TRACKING_PASSWORD:?MLflow test password is required}"
+# Keep credentials out of process arguments and shell tracing.
+set +x
+umask 077
+python3 - "$check_dir/curl-auth" <<'PYAUTH'
+import os
+import sys
+credentials = os.environ['MLFLOW_TRACKING_USERNAME'] + ':' + os.environ['MLFLOW_TRACKING_PASSWORD']
+credentials = credentials.replace('\\', '\\\\').replace('"', '\\"').replace('\n', '\\n').replace('\r', '\\r')
+with open(sys.argv[1], 'w') as stream:
+    stream.write('user = "' + credentials + '"\n')
+PYAUTH
+curl_args+=(--config "$check_dir/curl-auth")
 curl "${curl_args[@]}" -H 'Content-Type: application/json' \
     -d '{"max_results":1}' "$base_url/api/2.0/mlflow/experiments/search" --output /dev/null
 curl "${curl_args[@]}" "$base_url/api/2.0/mlflow/registered-models/search?max_results=1" --output /dev/null

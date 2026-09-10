@@ -15,6 +15,9 @@ spec:
       volumes:
         - name: mlflow-setup-volume
           emptyDir: {}
+        - name: mlflow-auth
+          secret:
+            secretName: mlflow-auth
       initContainers:
         - name: init-mlflow
           image: ghcr.io/mlflow/mlflow:v2.16.2
@@ -22,7 +25,7 @@ spec:
           args:
             - |
               exec pip install --no-cache-dir --only-binary=:all: \
-                psycopg2-binary boto3 --target /mlflow-setup
+                psycopg2-binary boto3 "mlflow[auth]==2.16.2" --target /mlflow-setup
           volumeMounts:
             - name: mlflow-setup-volume
               mountPath: /mlflow-setup
@@ -33,16 +36,29 @@ spec:
           command: [ "sh", "-c" ]
           args:
             - |
-              export PYTHONPATH=/mlflow-setup && \
-              exec mlflow server --backend-store-uri "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_URL}/${POSTGRES_DB_NAME}" \
+              export PYTHONPATH=/mlflow-setup
+              backend_store_uri="${BACKEND_STORE_URI:-postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_URL}/${POSTGRES_DB_NAME}}"
+              exec mlflow server --backend-store-uri "${backend_store_uri}" \
               --host 0.0.0.0 \
               --port 80 \
               --artifacts-destination "${ARTIFACTS_DESTINATION}" \
+              --app-name basic-auth \
               --serve-artifacts
           volumeMounts:
             - name: mlflow-setup-volume
               mountPath: /mlflow-setup
+            - name: mlflow-auth
+              mountPath: /mlflow-auth
+              readOnly: true
           env:
+            - name: MLFLOW_AUTH_CONFIG_PATH
+              value: /mlflow-auth/basic_auth.ini
+            - name: BACKEND_STORE_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: mlflow-config
+                  key: BACKEND_STORE_URI
+                  optional: true
             - name: POSTGRES_USER
               valueFrom:
                 secretKeyRef:
@@ -101,7 +117,7 @@ metadata:
 spec:
   type: ClusterIP
   selector:
-    app: model-experiment-registry-deployment
+    app: mlflow
   ports:
     - port: 80
       protocol: TCP

@@ -10,6 +10,8 @@ pipeline {
         string(name: 'KUBE_CREDENTIALS_ID', defaultValue: 'k8s-admin', description: 'Jenkins Kubernetes credentials')
         string(name: 'POSTGRES_USER', defaultValue: '', description: 'PostgreSQL user for the mlflow database', trim: true)
         password(name: 'POSTGRES_PASSWORD', defaultValue: '', description: 'PostgreSQL password')
+        string(name: 'MLFLOW_TRACKING_USERNAME', defaultValue: '', description: 'Initial MLflow administrator username', trim: true)
+        password(name: 'MLFLOW_TRACKING_PASSWORD', defaultValue: '', description: 'Initial MLflow administrator password')
         string(name: 'AWS_ACCESS_KEY_ID', defaultValue: '', description: 'MinIO access key ID', trim: true)
         password(name: 'AWS_SECRET_ACCESS_KEY', defaultValue: '', description: 'MinIO secret access key')
     }

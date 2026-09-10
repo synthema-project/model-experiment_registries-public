@@ -4,6 +4,7 @@ metadata:
   name: mlflow-config
   namespace: synthema-dev
 data:
+  BACKEND_STORE_URI: ""
   POSTGRES_URL: "mstorage-svc:5432"
   POSTGRES_DB_NAME: "mlflow"
   MLFLOW_S3_ENDPOINT_URL: "http://ostorage-svc-api:9000"
