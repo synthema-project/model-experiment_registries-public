@@ -1,0 +1,23 @@
+pipeline {
+    agent { label 'jenkins-dev' }
+    options {
+        disableConcurrentBuilds()
+        timeout(time: 10, unit: 'MINUTES')
+    }
+    parameters {
+        string(name: 'KUBE_CREDENTIALS_ID', defaultValue: 'k8s-admin', description: 'Jenkins Kubernetes credentials for the dev cluster', trim: true)
+    }
+    environment {
+        NAMESPACE = 'synthema-dev'
+        DEPLOYMENT = 'model-experiment-registry-deployment'
+    }
+    stages {
+        stage('Remove MLflow deployment and leftover replicas') {
+            steps {
+                withKubeConfig([credentialsId: params.KUBE_CREDENTIALS_ID, restrictKubeConfigAccess: true]) {
+                    sh 'python3 jenkins/kill-deployment.py'
+                }
+            }
+        }
+    }
+}
