@@ -32,7 +32,20 @@ def main():
     selector = deployed['spec']['selector']
     if selector.get('matchExpressions'):
         raise ValueError('Unsupported deployment selector')
-    template = copy.deepcopy(deployed['spec']['template'])
+    # Migrations must use the target version, not the version currently running.
+    manifest = os.environ.get('MANIFEST', 'k8/deployment.yaml')
+    desired = json.loads(kubectl('create', '--dry-run=client', '-f', manifest, '-o', 'json'))
+    resources = desired.get('items', [desired])
+    targets = [item for item in resources if item.get('kind') == 'Deployment'
+               and item.get('metadata', {}).get('name') == deployment
+               and item.get('metadata', {}).get('namespace', namespace) == namespace]
+    if len(targets) != 1:
+        raise ValueError('Manifest must contain exactly one matching target Deployment')
+    template = copy.deepcopy(targets[0]['spec']['template'])
+    deployed_container = next(c for c in deployed['spec']['template']['spec']['containers'] if c['name'] == 'mlflow')
+    target_container = next(c for c in template['spec']['containers'] if c['name'] == 'mlflow')
+    version_change = deployed_container['image'] != target_container['image']
+    print(f"Maintenance target image: {target_container['image']}", flush=True)
     # Do not match the server's Service or ReplicaSet selectors.
     name = 'mlflow-db-' + uuid.uuid4().hex[:12]
     template['metadata'] = {'labels': {'job-purpose': 'mlflow-db-maintenance'}}
@@ -76,6 +89,9 @@ def main():
             print(kubectl('logs', 'job/' + name, '-c', 'mlflow', '--tail=100'))
         except subprocess.SubprocessError:
             print(f'Logs unavailable; inspect Job {name} in namespace {namespace}.')
+    if version_change:
+        print('Migration succeeded. The previous server remains stopped; run the normal deployment job to start the target version.', flush=True)
+        return
     kubectl('scale', 'deployment', deployment, f'--replicas={replicas}')
     print(f'Maintenance succeeded; restored replicas to {replicas}.', flush=True)
 

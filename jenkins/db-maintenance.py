@@ -1,4 +1,4 @@
-"""Runs inside the maintenance pod, using the deployed MLflow version."""
+"""Runs inside the maintenance pod, using the target MLflow version."""
 import os
 
 from sqlalchemy import MetaData, create_engine, inspect

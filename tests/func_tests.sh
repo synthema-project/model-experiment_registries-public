@@ -38,8 +38,8 @@ base_url="http://127.0.0.1:$port"
 curl_args=(--fail --silent --show-error --connect-timeout 5 --max-time 30)
 curl "${curl_args[@]}" "$base_url/health" --output /dev/null
 version=$(curl "${curl_args[@]}" "$base_url/version")
-if [[ "$version" != '2.16.2' ]]; then
-    echo "Expected MLflow 2.16.2, received: $version" >&2
+if [[ "$version" != '2.19.0' ]]; then
+    echo "Expected MLflow 2.19.0, received: $version" >&2
     exit 1
 fi
 # Protected APIs must reject anonymous requests.

@@ -25,18 +25,18 @@ spec:
             secretName: mlflow-auth
       initContainers:
         - name: init-mlflow
-          image: ghcr.io/mlflow/mlflow:v2.16.2
+          image: ghcr.io/mlflow/mlflow:v2.19.0
           command: [ "sh", "-c" ]
           args:
             - |
               exec pip install --no-cache-dir --only-binary=:all: \
-                psycopg2-binary boto3 "mlflow[auth]==2.16.2" --target /mlflow-setup
+                psycopg2-binary boto3 "mlflow[auth]==2.19.0" --target /mlflow-setup
           volumeMounts:
             - name: mlflow-setup-volume
               mountPath: /mlflow-setup
       containers:
         - name: mlflow
-          image: ghcr.io/mlflow/mlflow:v2.16.2
+          image: ghcr.io/mlflow/mlflow:v2.19.0
           imagePullPolicy: IfNotPresent
           command: [ "sh", "-c" ]
           args:

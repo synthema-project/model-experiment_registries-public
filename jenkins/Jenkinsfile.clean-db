@@ -12,12 +12,13 @@ pipeline {
     }
     environment {
         NAMESPACE = 'synthema-dev'
+        MANIFEST = 'k8/deployment.yaml'
         DEPLOYMENT = 'model-experiment-registry-deployment'
     }
     stages {
         stage('Database maintenance') {
             steps {
-                withKubeConfig([credentialsId: params.KUBE_CREDENTIALS_ID]) {
+                withKubeConfig([credentialsId: params.KUBE_CREDENTIALS_ID, restrictKubeConfigAccess: true]) {
                     sh 'python3 jenkins/maintain-db.py'
                 }
             }
