@@ -4,6 +4,11 @@ metadata:
   name: model-experiment-registry-deployment
   namespace: synthema-dev
 spec:
+  replicas: 1
+  revisionHistoryLimit: 2
+  strategy:
+    type: Recreate
+    rollingUpdate: null
   selector:
     matchLabels:
       app: mlflow

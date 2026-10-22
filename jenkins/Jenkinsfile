@@ -27,7 +27,7 @@ pipeline {
     stages {
         stage('Validate') {
             steps {
-                withKubeConfig([credentialsId: params.KUBE_CREDENTIALS_ID]) {
+                withKubeConfig([credentialsId: params.KUBE_CREDENTIALS_ID, restrictKubeConfigAccess: true]) {
                     sh '''
                         set -eu
                         kubectl get namespace "$NAMESPACE" -o name
@@ -40,24 +40,34 @@ pipeline {
         }
         stage('Deploy') {
             steps {
-                withKubeConfig([credentialsId: params.KUBE_CREDENTIALS_ID]) {
+                withKubeConfig([credentialsId: params.KUBE_CREDENTIALS_ID, restrictKubeConfigAccess: true]) {
                     sh '''
                         set -eu
                         bash jenkins/mlflow-secret.sh apply
                         kubectl -n "$NAMESPACE" apply -f k8/configmap.yml
+                        # A create/template change already starts a rollout. Restart only when
+                        # apply leaves the pod template unchanged, to reload Secrets/ConfigMaps.
+                        previous_template=$(kubectl -n "$NAMESPACE" get deployment "$DEPLOYMENT" --ignore-not-found -o jsonpath='{.spec.template}')
                         kubectl -n "$NAMESPACE" apply -f "$MANIFEST"
-                        kubectl -n "$NAMESPACE" rollout restart deployment/"$DEPLOYMENT"
+                        current_template=$(kubectl -n "$NAMESPACE" get deployment "$DEPLOYMENT" -o jsonpath='{.spec.template}')
+                        if [ -n "$previous_template" ] && [ "$previous_template" = "$current_template" ]; then
+                            kubectl -n "$NAMESPACE" rollout restart deployment/"$DEPLOYMENT"
+                        fi
                         kubectl -n "$NAMESPACE" rollout status deployment/"$DEPLOYMENT" --timeout=600s
                     '''
                 }
             }
             post {
                 unsuccessful {
-                    withKubeConfig([credentialsId: params.KUBE_CREDENTIALS_ID]) {
+                    withKubeConfig([credentialsId: params.KUBE_CREDENTIALS_ID, restrictKubeConfigAccess: true]) {
                         sh '''
                             # Best-effort diagnostics; preserve the original deployment failure.
                             set +e
+                            kubectl --request-timeout=15s -n "$NAMESPACE" get deployment "$DEPLOYMENT" -o wide
+                            kubectl --request-timeout=15s -n "$NAMESPACE" get replicasets -l app=mlflow -o wide
                             kubectl --request-timeout=15s -n "$NAMESPACE" get pods -l app=mlflow -o wide
+                            kubectl --request-timeout=15s -n "$NAMESPACE" get pods -l app=mlflow \
+                                -o 'custom-columns=POD:.metadata.name,OWNER:.metadata.ownerReferences[*].name,WAITING:.status.containerStatuses[*].state.waiting.reason,MESSAGE:.status.containerStatuses[*].state.waiting.message,LAST_EXIT:.status.containerStatuses[*].lastState.terminated.exitCode,LAST_REASON:.status.containerStatuses[*].lastState.terminated.reason'
                             pods=$(kubectl --request-timeout=15s -n "$NAMESPACE" get pods -l app=mlflow -o name)
                             for pod in $pods; do
                                 echo "=== $pod: init-container status ==="
@@ -83,7 +93,7 @@ pipeline {
         }
         stage('Functional tests') {
             steps {
-                withKubeConfig([credentialsId: params.KUBE_CREDENTIALS_ID]) {
+                withKubeConfig([credentialsId: params.KUBE_CREDENTIALS_ID, restrictKubeConfigAccess: true]) {
                     sh 'bash tests/func_tests.sh'
                 }
             }
